@@ -1,10 +1,13 @@
-import { Component } from '@angular/core';
-import { componentFactoryName } from '@angular/compiler';
+import { Component, OnInit} from '@angular/core';
 
 @Component({
-    selector: 'cms-header',
+    selector: 'app-header',
     templateUrl:'./header.component.html'
 })
 export class HeaderComponent{
+    constructor() { }
 
+    ngOnInit() {
+
+    }
 }
