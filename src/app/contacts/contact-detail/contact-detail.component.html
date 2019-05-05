@@ -1,19 +1,16 @@
-<div class="row">
-    <div class="col-xs-12">
-      <button class="btn-success">Edit</button>
-      <button class="btn-success">Delete</button>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3>{{contact.name}}</h3>
+        <img src="{{ contact.imageUrl }}" alt="{{contact.name}}" class="img-reponsive" style="max-height: 50px;">
+        <span>
+          <button class="btn-primary pull-right">Edit</button>
+          <button class="btn-danger pull-right">Delete</button>
+        </span>
     </div>
-  </div>
-  <hr>
-  <div class="row">
-    <div class="col-xs-12">
-       <a href="#" class="list-group-item clearfix" *ngFor="let contact of contacts">
-        <div class="pull-right">
-            <ul>
-                <li>{{ contact.email }}</li>
-                <li>{{ contact.phone }}</li>
-            </ul>
-        </div>
-      </a>
+    <div class="panel-body">
+      <div class="col-xs-12">
+        <p>Email: </p>
+        <p>Phone:</p>
+     </div>
     </div>
   </div>
