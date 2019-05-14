@@ -13,7 +13,7 @@ import { DocumentsComponent } from './documents/documents.component';
 import { DocumentListComponent } from './documents/document-list/document-list.component';
 import { DocumentItemComponent } from './documents/document-item/document-item.component';
 import { DocumentDetailComponent } from './documents/document-detail/document-detail.component';
-import { MessageItemComponent } from './messages/message-item/message-item.component';
+import { MessageItemComponent } from './messages/message-list/message-item/message-item.component';
 import { MessageListComponent } from './messages/message-list/message-list.component';
 
 
