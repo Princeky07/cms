@@ -1,7 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 
-import { Message } from '../../messages.model'
-import { initDomAdapter } from '@angular/platform-browser/src/browser';
+import { Message } from '../../messages.model';
+import { Contact } from '../../../contacts/contacts.model';
+import { ContactService } from 'src/app/contacts/contact.service';
 
 @Component({
   selector: 'cms-message-item',
@@ -10,10 +11,15 @@ import { initDomAdapter } from '@angular/platform-browser/src/browser';
 })
 export class MessageItemComponent implements OnInit {
   @Input() message: Message;
+  messageSender: string = "";
+  canEdit: boolean = false;
 
-  constructor(){ }
+  constructor(private contactService: ContactService){ }
 
-  ngOnInit() { }
+  ngOnInit() {
+    let contact: Contact = this.contactService.getContact(this.message.sender);
+    this.messageSender = contact.name; 
+   }
 
   
 }

@@ -17,6 +17,7 @@ import { MessageItemComponent } from './messages/message-list/message-item/messa
 import { MessageListComponent } from './messages/message-list/message-list.component';
 import { MessageEditComponent } from './messages/message-list/message-edit/message-edit.component';
 import { DropdownDirective } from './shared/dropdown.directive';
+import { MessageService } from './messages/message.service';
 
 
 @NgModule({
@@ -41,6 +42,7 @@ import { DropdownDirective } from './shared/dropdown.directive';
     FormsModule,
     HttpClientModule
   ],
+  providers: [MessageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
