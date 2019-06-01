@@ -19,13 +19,14 @@ export class DocumentService {
     return this.documents.slice();
   }
 
-  getDocument(id: string): Document{
-    for (let i = 0; i < this.documents.length; i++){
-      if (this.documents[i].id ===id){
-        return this.documents[i];
-      } 
+  getDocument(index: string): Document{
+    return this.documents[index];
+  }
+
+  deleteDocument(document: Document) {
+    if (document === null) {
+      return;
     }
-    return null;
   }
 
 }
