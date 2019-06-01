@@ -20,7 +20,7 @@ export class DocumentService {
   }
 
   getDocument(id: string): Document{
-    for (let i = 0; i < Document.length; i++){
+    for (let i = 0; i < this.documents.length; i++){
       if (this.documents[i].id ===id){
         return this.documents[i];
       } 
