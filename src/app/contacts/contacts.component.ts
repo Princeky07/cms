@@ -8,6 +8,7 @@ import { ContactService } from './contact.service';
   templateUrl: './contacts.component.html',
   styleUrls: ['./contacts.component.css']
 })
+
 export class ContactsComponent implements OnInit {
   selectedContact: Contact;
   constructor(private contactService: ContactService) { }
@@ -17,8 +18,7 @@ export class ContactsComponent implements OnInit {
       .subscribe(
         (contact: Contact) => {
           this.selectedContact = contact;
-        }
-      )
+        });
   }
 
 }

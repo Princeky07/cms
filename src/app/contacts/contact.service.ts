@@ -15,6 +15,8 @@ export class ContactService {
 
   contactSelected = new EventEmitter<Contact>();
 
+  contactListChangedEvent = new EventEmitter<Contact[]>();
+
   getContacts(): Contact[] {
     return this.contacts.slice();
   }
@@ -27,6 +29,12 @@ export class ContactService {
     if (contact === null) {
       return;
     }
+    const pos = this.contacts.indexOf(contact);
+    if (pos < 0) {
+      return;
+    }
+    this.contacts.splice(pos, 1);
+    this.contactListChangedEvent.emit(this.contacts.slice());
   }
 
 }

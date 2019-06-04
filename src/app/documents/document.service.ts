@@ -15,6 +15,8 @@ export class DocumentService {
 
   documentSelected = new EventEmitter<Document>();
 
+  documentListChangedEvent = new EventEmitter<Document[]>();
+
   getDocuments(): Document[] {
     return this.documents.slice();
   }
@@ -27,6 +29,12 @@ export class DocumentService {
     if (document === null) {
       return;
     }
+    const pos = this.documents.indexOf(document);
+    if (pos < 0) {
+      return;
+    }
+    this.documents.splice(pos, 1);
+    this.documentListChangedEvent.emit(this.documents.slice());
   }
 
 }
