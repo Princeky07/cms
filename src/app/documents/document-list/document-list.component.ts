@@ -20,18 +20,23 @@ export class DocumentListComponent implements OnInit {
   
   }
 
-  ngOnInit() { 
-    this.subscription = this.documentService.documentListChangedEvent
-    .subscribe((documents: Document[]) => {
-      this.documents = documents;
-    });
-
+  ngOnInit() {
     this.documents = this.documentService.getDocuments();
-
+    this.documentService.documentListChangedEvent
+      .subscribe((documents: Document[])=> {
+        this.documents = documents;
+      })
+    this.subscription = this.documentService.documentListChangedEvent
+      .subscribe((documentsList: Document[]) => {
+        this.documents = documentsList;
+      })
   }
 
   onNewDocument() {
     this.router.navigate(['new'], {relativeTo: this.route});
   }
 
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
 }
