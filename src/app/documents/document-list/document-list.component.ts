@@ -14,9 +14,7 @@ export class DocumentListComponent implements OnInit {
   documents: Document[] = [];
   subscription: Subscription;
   
-  constructor(private documentService: DocumentService,
-              private router: Router,
-              private route: ActivatedRoute) {
+  constructor(private documentService: DocumentService) {
   
   }
 
@@ -30,10 +28,6 @@ export class DocumentListComponent implements OnInit {
       .subscribe((documentsList: Document[]) => {
         this.documents = documentsList;
       })
-  }
-
-  onNewDocument() {
-    this.router.navigate(['new'], {relativeTo: this.route});
   }
 
   ngOnDestroy() {

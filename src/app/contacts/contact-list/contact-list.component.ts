@@ -1,8 +1,6 @@
 import { Component, OnInit} from '@angular/core';
-
 import { Contact } from '../contacts.model';
 import { ContactService } from '../contact.service';
-import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -13,10 +11,9 @@ import { Subscription } from 'rxjs';
 export class ContactListComponent implements OnInit {
   contacts: Contact[] = [];
   subscription: Subscription;
+  term: string;
 
-  constructor(private contactService: ContactService,
-              private router: Router,
-              private route: ActivatedRoute) {}
+  constructor(private contactService: ContactService) {}
 
   ngOnInit() {
     this.contacts = this.contactService.getContacts();
@@ -34,4 +31,7 @@ export class ContactListComponent implements OnInit {
     this.subscription.unsubscribe();
   }  
   
+  onKeyPress(value: string) {
+    this.term = value;
+  }
 }
