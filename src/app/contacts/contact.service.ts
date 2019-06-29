@@ -2,15 +2,16 @@ import { Injectable, EventEmitter } from '@angular/core';
 import { Contact } from './contacts.model';
 import { MOCKCONTACTS } from './MOCKCONTACTS';
 import { Subject } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContactService {
-  constructor() { 
-    this.contacts = MOCKCONTACTS;
-    this.maxContactId = this.getMaxId();
-  }
+
+  constructor(private http: HttpClient) { }
+
 
   contacts: Contact[] = [];
   contactSelected = new Subject<Contact>();
@@ -18,8 +19,17 @@ export class ContactService {
   maxContactId: number;
   contactsListClone: Contact[];
 
-  getContacts(): Contact[] {
-    return this.contacts.slice();
+  getContacts() {
+    this.http
+    .get<Contact[]>('https://princecms-4f1e5.firebaseio.com/contacts.json')
+    .subscribe((contacts: Contact[]) => {
+      this.contacts = contacts;
+      this.maxContactId = this.getMaxID();
+      this.contacts.sort(compareContactsByID);
+      this.contactListChangedEvent.next(this.contacts.slice());
+    }, (err: any) => {
+      console.error(err);
+    });
   }
 
   getContact(id: string): Contact{
@@ -42,6 +52,7 @@ export class ContactService {
     }
     this.contacts.splice(pos, 1);
     this.contactsListClone = this.contacts.slice();
+    this.storeContacts();
     this.contactListChangedEvent.next(this.contactsListClone);
   }
 
@@ -53,6 +64,7 @@ export class ContactService {
     newContact.id = this.maxContactId.toString();
     this.contacts.push(newContact);
     this.contactsListClone = this.contacts.slice();
+    this.storeContacts();
     this.contactListChangedEvent.next(this.contactsListClone);
   }
 
@@ -67,10 +79,11 @@ export class ContactService {
     newContact.id = originalContact.id;
     this.contacts[pos] = newContact;
     this.contactsListClone = this.contacts.slice();
+    this.storeContacts();
     this.contactListChangedEvent.next(this.contactsListClone);
   }
 
-  getMaxId(): number {
+  getMaxID(): number {
     var maxId = 0;
     for(var i = 0; i<this.contacts.length; i++) {
       var currentId = Number(this.contacts[i]['id']);
@@ -81,4 +94,25 @@ export class ContactService {
     return maxId;
   }
 
+  storeContacts() {
+    let json = JSON.stringify(this.contacts);
+    let header = new HttpHeaders();
+    header.set('Content-Type', 'application/json');
+    this.http
+    .put('https://princecms-4f1e5.firebaseio.com/contacts.json', json, {
+      headers: header
+    }).subscribe(() => {
+      this.contactListChangedEvent.next(this.contacts.slice());
+    });
+  }
 }
+
+  function compareContactsByID(lhs: Contact, rhs: Contact): number {
+    if (lhs.id < rhs.id) {
+      return -1;
+    } else if (lhs.id === rhs.id) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }

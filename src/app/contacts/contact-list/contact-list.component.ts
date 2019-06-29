@@ -16,14 +16,10 @@ export class ContactListComponent implements OnInit {
   constructor(private contactService: ContactService) {}
 
   ngOnInit() {
-    this.contacts = this.contactService.getContacts();
-    this.contactService.contactListChangedEvent
+    this.contactService.getContacts();
+    this.subscription = this.contactService.contactListChangedEvent
       .subscribe((contacts: Contact[])=> {
         this.contacts = contacts;
-      })
-    this.subscription = this.contactService.contactListChangedEvent
-      .subscribe((contactsList: Contact[]) => {
-        this.contacts = contactsList;
       })
   }
             

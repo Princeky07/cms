@@ -27,11 +27,10 @@
             max="255"
             [ngModel]="contact?.email"
             required
-            #email
+            #email="ngModel"
             name="email"
-            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"
-          >
-          <div *ngIf="email.dirty && !email.valid" class="alert alert-danger">Enter a valid Email address</div>
+            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$">
+          <div *ngIf="email.touched && email.invalid" class="alert alert-danger">Enter a valid Email address</div>
         </div>
 
         <div class="col-sm-12 form-group">
@@ -43,11 +42,11 @@
             size="150"
             max="255"
             [ngModel]="contact?.phone"
-            #phone
+            #phone="ngModel"
             name="phone"
             pattern="\D*([2-9]\d{2})(\D*)([2-9]\d{2})(\D*)(\d{4})\D*"
           >
-          <div *ngIf="(phone.dirty && !phone.valid)" class="alert alert-danger">Enter a valid phone number</div>
+          <div *ngIf="phone.dirty && phone.invalid" class="alert alert-danger">Enter a valid phone number</div>
         </div>
 
         <div class="col-sm-12 form-group">
@@ -82,7 +81,7 @@
         </div>
       </div>
 
-      <div *ngIf="(name.untouched && !name.valid) || (email.untouched || !email.validity)" class="alert alert-danger">
+      <div *ngIf="f.touched && !f.valid" class="alert alert-danger">
         The Name and Email are required.
       </div>
 

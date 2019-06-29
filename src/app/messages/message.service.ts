@@ -2,22 +2,30 @@ import { Injectable } from '@angular/core';
 import{Message} from './messages.model';
 import { MOCKMESSAGES } from './MOCKMESSAGES';
 import { Subject } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MessageService {
 
-  constructor() { 
-    this.messages = MOCKMESSAGES;
-  }
+  constructor(private http: HttpClient) { }
 
   messages: Message[] = [];
-
   messagesChanged = new Subject<Message[]>();
+  maxMessageId: number;
 
-  getMessages(): Message[] {
-    return this.messages.slice();
+  getMessages() {
+    this.http
+    .get<Message[]>('https://princecms-4f1e5.firebaseio.com/messages.json')
+    .subscribe((messages: Message[]) => {
+      this.messages = messages;
+      this.maxMessageId = this.getMaxId();
+      this.messages.sort(compareMessagesByID);
+      this.messagesChanged.next(this.messages.slice());
+    }, (err: any) => {
+      console.log(err);
+    });
   }
 
   getMessage(id: string): Message {
@@ -29,9 +37,48 @@ export class MessageService {
     return null;
   }
 
-  addMessage(message: Message){
-    this.messages.push(message);
-    this.messagesChanged.next(this.messages.slice());
+  storeMessages() {
+    let json = JSON.stringify(this.messages);
+    let header = new HttpHeaders();
+    header.set('Content-Type', 'application/json');
+    this.http
+    .put('https://princecms-4f1e5.firebaseio.com/messages.json', json, {
+      headers: header
+    }).subscribe(() => {
+          this.messagesChanged.next(this.messages.slice());
+        });
   }
 
+  addMessage(newMessage: Message) {
+    if (newMessage === null) {
+      return;
+    }
+
+    this.maxMessageId++;
+    newMessage.id = String(this.maxMessageId);
+    this.messages.push(newMessage);
+    this.storeMessages();
+  }
+
+  getMaxId (): number {
+    var maxId = 0;
+    for (var i = 0; i < this.messages.length; i++) {
+      var currentId = Number(this.messages[i]['id']);
+      if (currentId > maxId) {
+        maxId = currentId;
+      }
+    }
+    return maxId;
+  }
+
+}
+
+function compareMessagesByID(lhs: Message, rhs: Message): number {
+  if (lhs.id < rhs.id) {
+    return -1;
+  } else if (lhs.id === rhs.id) {
+    return 0;
+  } else {
+    return 1;
+  }
 }

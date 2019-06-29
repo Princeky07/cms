@@ -11,8 +11,9 @@ import { MessageService } from '../../message.service';
 export class MessageEditComponent implements OnInit {
   @ViewChild('subjectInput') subjectInputRef: ElementRef;
   @ViewChild('messageInput') messageInputRef:ElementRef;
-  currentSender = '2';
-  id = '';
+  @Output() addMessageEvent = new EventEmitter<Message>();
+  currentSender = '19';
+  id = '50';
 
   constructor(private messageService: MessageService) { }
 
@@ -22,7 +23,7 @@ export class MessageEditComponent implements OnInit {
   onSendMessage() {
     const msgSubject = this.subjectInputRef.nativeElement.value;
     const msgText = this.messageInputRef.nativeElement.value;
-    let newMessage = new Message(this.id, msgSubject, msgText, this.currentSender);
+    const newMessage = new Message(this.id, msgSubject, msgText, this.currentSender);
     this.messageService.addMessage(newMessage);
   }
 

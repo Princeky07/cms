@@ -2,16 +2,14 @@ import { Injectable } from '@angular/core';
 import{Document} from './documents.model'
 import { MOCKDOCUMENTS } from './MOCKDOCUMENTS';
 import { Subject } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
 
-  constructor() { 
-    this.documents = MOCKDOCUMENTS;
-    this.maxDocumentId = this.getMaxID();
-  }
+  constructor(private http: HttpClient) { }
 
   documents: Document[] = [];
   maxDocumentId: number;
@@ -19,12 +17,26 @@ export class DocumentService {
   documentListChangedEvent = new Subject<Document[]>();
   documentsListClone: Document[];
 
-  getDocuments(): Document[] {
-    return this.documents.slice();
+  getDocuments() {
+    this.http
+    .get<Document[]>('https://princecms-4f1e5.firebaseio.com/documents.json')
+    .subscribe((documents: Document[]) => {
+      this.documents = documents;
+      this.maxDocumentId = this.getMaxID();
+      this.documents.sort(compareDocumentsByID);
+      this.documentListChangedEvent.next(this.documents.slice());
+    }, (err: any) => {
+      console.error(err);
+    });
   }
 
-  getDocument(index: string): Document{
-    return this.documents[index];
+  getDocument(id: string): Document{
+    for (var i = 0; i < this.documents.length; i++) {
+      if (this.documents[i].id === id) {
+        return this.documents[i];
+      }
+    }
+    return null;
   }
 
   deleteDocument(document: Document) {
@@ -37,6 +49,7 @@ export class DocumentService {
     }
     this.documents.splice(pos, 1);
     this.documentsListClone = this.documents.slice();
+    this.storeDocuments();
     this.documentListChangedEvent.next(this.documentsListClone);
   }
 
@@ -48,6 +61,7 @@ export class DocumentService {
     newDocument.id = this.maxDocumentId.toString();
     this.documents.push(newDocument);
     this.documentsListClone = this.documents.slice();
+    this.storeDocuments();
     this.documentListChangedEvent.next(this.documentsListClone);
   }
 
@@ -64,6 +78,7 @@ export class DocumentService {
     newDocument.id = originalDocument.id;
     this.documents[pos] = newDocument;
     this.documentsListClone = this.documents.slice();
+    this.storeDocuments();
     this.documentListChangedEvent.next(this.documentsListClone);
   }
 
@@ -81,7 +96,26 @@ export class DocumentService {
     return maxID;
   }
 
-  
-
+  storeDocuments() {
+    let json = JSON.stringify(this.documents);
+    let header = new HttpHeaders();
+    header.set('Content-Type', 'application/json');
+    this.http
+    .put('https://princecms-4f1e5.firebaseio.com/documents.json', json, {
+      headers: header
+    }).subscribe(() => {
+      this.documentListChangedEvent.next(this.documents.slice());
+    });
+  }
 }
+
+  function compareDocumentsByID(lhs: Document, rhs: Document): number {
+    if (lhs.id < rhs.id) {
+      return -1;
+    } else if (lhs.id === rhs.id) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
 
