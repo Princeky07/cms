@@ -8,17 +8,15 @@ import { ContactService } from './contact.service';
   templateUrl: './contacts.component.html',
   styleUrls: ['./contacts.component.css']
 })
-
 export class ContactsComponent implements OnInit {
   selectedContact: Contact;
+
   constructor(private contactService: ContactService) { }
-  
+
   ngOnInit() {
-    this.contactService.contactSelected
-      .subscribe(
-        (contact: Contact) => {
-          this.selectedContact = contact;
-        });
+    this.contactService.contactSelectedEvent.subscribe((contact) => {
+      this.selectedContact = contact;
+    });
   }
 
 }

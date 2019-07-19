@@ -10,14 +10,18 @@ import { Contact } from 'src/app/contacts/contacts.model';
 })
 export class MessageItemComponent implements OnInit {
   @Input() message: Message;
-  messageSender: string = "";
-  canEdit = false;
+  messageSender: string = '';
+  canEdit: boolean = false;
   
   constructor(private contactService: ContactService) { }
 
   ngOnInit() {
     let contact: Contact = this.contactService.getContact(this.message.sender);
+    if (!contact) {
+      this.messageSender = '[deleted]';
+    } else {
       this.messageSender = contact.name;
+    }
   }
 
 }

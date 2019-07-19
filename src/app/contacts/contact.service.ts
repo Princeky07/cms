@@ -1,30 +1,30 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import { Contact } from './contacts.model';
-import { MOCKCONTACTS } from './MOCKCONTACTS';
-import { Subject } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 
+import { Contact } from './contacts.model';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContactService {
-
-  constructor(private http: HttpClient) { }
-
-
   contacts: Contact[] = [];
-  contactSelected = new Subject<Contact>();
-  contactListChangedEvent = new Subject<Contact[]>();
-  maxContactId: number;
-  contactsListClone: Contact[];
+  contactSelectedEvent: EventEmitter<Contact> = new EventEmitter<Contact>();
+  contactChangedEvent: EventEmitter<Contact[]> = new EventEmitter<Contact[]>();
+  contactListChangedEvent: Subject<Contact[]> = new Subject<Contact[]>();
+  maxContactID: number;
 
-  getContacts() {
-    this.http
-    .get<Contact[]>('https://princecms-4f1e5.firebaseio.com/contacts.json')
-    .subscribe((contacts: Contact[]) => {
-      this.contacts = contacts;
-      this.maxContactId = this.getMaxID();
+  constructor(private http: HttpClient) { 
+    this.getContacts();
+  }
+
+  getContacts(): void {
+    this
+    .http
+    .get<{message: string, contacts: Contact[]}>('http://localhost:3000/contacts')
+    .subscribe((response: any) => {
+      this.contacts = response.contacts;
+      this.maxContactID = this.getMaxID();
       this.contacts.sort(compareContactsByID);
       this.contactListChangedEvent.next(this.contacts.slice());
     }, (err: any) => {
@@ -32,74 +32,98 @@ export class ContactService {
     });
   }
 
-  getContact(id: string): Contact{
-    for (var i = 0; i < this.contacts.length; i++) {
-      if (this.contacts[i].id === id) {
-        return this.contacts[i];
+  getContact(id: string): Contact {
+    if (!this.contacts) {
+      return null;
+    }
+
+    for (let contact of this.contacts) {
+      if (contact.id === id) {
+        return contact;
       }
     }
+
     return null;
   }
 
-  deleteContact(contact: Contact) {
-    if (contact === null || contact === undefined) {
-      return;
-    }
-
-    const pos = this.contacts.indexOf(contact);
-    if (pos < 0) {
-      return;
-    }
-    this.contacts.splice(pos, 1);
-    this.contactsListClone = this.contacts.slice();
-    this.storeContacts();
-    this.contactListChangedEvent.next(this.contactsListClone);
-  }
-
-  addContact(newContact: Contact) {
-    if (newContact == undefined || newContact == null) {
-      return
-    }
-    this.maxContactId++
-    newContact.id = this.maxContactId.toString();
-    this.contacts.push(newContact);
-    this.contactsListClone = this.contacts.slice();
-    this.storeContacts();
-    this.contactListChangedEvent.next(this.contactsListClone);
-  }
-
-  updateContact(originalContact: Contact, newContact: Contact) {
-    if (originalContact == null || originalContact == undefined || newContact == null || newContact == undefined) {
-      return;
-    }
-    const pos = this.contacts.indexOf(originalContact);
-    if (pos < 0) {
-      return;
-    }
-    newContact.id = originalContact.id;
-    this.contacts[pos] = newContact;
-    this.contactsListClone = this.contacts.slice();
-    this.storeContacts();
-    this.contactListChangedEvent.next(this.contactsListClone);
-  }
-
   getMaxID(): number {
-    var maxId = 0;
-    for(var i = 0; i<this.contacts.length; i++) {
-      var currentId = Number(this.contacts[i]['id']);
-      if (currentId > maxId) {
-        maxId = currentId;
+    let maxID = 0;
+    for (let contact of this.contacts) {
+      let currentID = +contact.id;
+      if (currentID > maxID) {
+        maxID = currentID;
       }
     }
-    return maxId;
+
+    return maxID;
   }
 
-  storeContacts() {
+  addContact(contact: Contact): void {
+    if (!contact) {
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    contact.id = '';
+
+    this.http
+    .post<{message: string, contact: Contact}>('http://localhost:3000/contacts', contact, {headers: headers})
+    .subscribe((response: any) => {
+      this.contacts.push(response.contact);
+      this.contacts.sort(compareContactsByID);
+      this.contactChangedEvent.next(this.contacts.slice());
+    });
+  }
+
+  updateContact(originalContact: Contact, newContact: Contact): void {
+    if (!originalContact || !newContact) {
+      return;
+    }
+
+    let index = this.contacts.indexOf(originalContact);
+    if (index < 0) {
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    const strContact = JSON.stringify(newContact);
+
+    this.http
+    .put<{message: string}>(`http://localhost:3000/contacts/${originalContact.id}`, strContact, {headers: headers})
+    .subscribe((response: any) => {
+      this.getContacts();
+    });
+  }
+
+  deleteContact(contact: Contact): void {
+    if (!contact) {
+      return;
+    }
+
+    const index = this.contacts.indexOf(contact);
+    if (index < 0) {
+      return;
+    }
+
+    this.http.delete(`http://localhost:3000/contacts/${contact.id}`)
+    .subscribe((contacts: Contact[]) => {
+      this.getContacts();
+    })
+  }
+
+  storeContacts(): void {
     let json = JSON.stringify(this.contacts);
     let header = new HttpHeaders();
     header.set('Content-Type', 'application/json');
-    this.http
-    .put('https://princecms-4f1e5.firebaseio.com/contacts.json', json, {
+    this
+    .http
+    .put<{message: string}>('http://localhost:3000/contacts', json, {
       headers: header
     }).subscribe(() => {
       this.contactListChangedEvent.next(this.contacts.slice());
@@ -107,12 +131,12 @@ export class ContactService {
   }
 }
 
-  function compareContactsByID(lhs: Contact, rhs: Contact): number {
-    if (lhs.id < rhs.id) {
-      return -1;
-    } else if (lhs.id === rhs.id) {
-      return 0;
-    } else {
-      return 1;
-    }
+function compareContactsByID(lhs: Contact, rhs: Contact): number {
+  if (lhs.id < rhs.id) {
+    return -1;
+  } else if (lhs.id === rhs.id) {
+    return 0;
+  } else {
+    return 1;
   }
+}

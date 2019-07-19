@@ -1,22 +1,21 @@
 <div class="panel panel-default">
   <div class="panel-body">
 
-    <form id="document-edit" (ngSubmit)="onSubmit(f)" #f="ngForm">
+    <form id="document-edit" #f="ngForm" (ngSubmit)="onSubmit(f)">
       <div class="row">
+
         <div class="col-sm-12 form-group">
           <label for="name">Document title</label>
           <input
             type="text"
             id="name"
+            name="name"
+            [ngModel]="document?.name"
+            #name="ngModel"
             class="form-control"
             size="120"
             max="120"
-            name="documentTitle"
-            [ngModel]="originalDocument?.name"
-            #documentTitle
-            ngModel
-            required
-          >
+            required>
         </div>
 
         <div class="col-sm-12 form-group">
@@ -24,12 +23,11 @@
           <input
             type="text"
             id="description"
+            name="description"
+            [ngModel]="document?.description"
             class="form-control"
             size="120"
-            max="255"
-            name="documentDescription"
-            [ngModel]="originalDocument?.description"
-          >
+            max="255">
         </div>
 
         <div class="col-sm-12 form-group">
@@ -37,27 +35,27 @@
           <input
             type="text"
             id="documentUrl"
+            name="url"
+            [ngModel]="document?.url"
             class="form-control"
             size="150"
             max="255"
-            name="documentUrl"
-            [ngModel]="originalDocument?.url"
-            ngModel
-            required
-            #documentUrl
-          >
+            required>
         </div>
-
       </div>
 
-      <div *ngIf="!f.valid" class="alert alert-danger">The Document Title and URL are required fields
+      <div *ngIf="!f.valid" class="alert alert-danger">
+        The Document title and URL are required fields.
       </div>
-
 
       <div class="row">
-        <div class="col-xs-12 btn-toolbar" >
-          <button [disabled]="!f.valid" class="btn btn-success" type="submit">Save</button>
-          <button class="btn btn-primary" type="button" (click)="onCancel()">Cancel</button>
+        <div class="col-xs-12">
+          <button class="btn btn-success" 
+                  type="submit" 
+                  [disabled]="!f.valid">Save</button>
+          <button class="btn btn-primary" 
+                  type="button" 
+                  (click)="onCancel()">Cancel</button>
         </div>
       </div>
 
@@ -65,3 +63,4 @@
 
   </div>
 </div>
+

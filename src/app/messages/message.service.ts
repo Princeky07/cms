@@ -1,76 +1,96 @@
-import { Injectable } from '@angular/core';
-import{Message} from './messages.model';
-import { MOCKMESSAGES } from './MOCKMESSAGES';
-import { Subject } from 'rxjs';
+import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+
+import { Message } from './messages.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MessageService {
-
-  constructor(private http: HttpClient) { }
-
   messages: Message[] = [];
-  messagesChanged = new Subject<Message[]>();
-  maxMessageId: number;
+  messagesChangedEvent: EventEmitter<Message[]> = new EventEmitter<Message[]>();
+  maxMessageID: number;
 
-  getMessages() {
-    this.http
-    .get<Message[]>('https://princecms-4f1e5.firebaseio.com/messages.json')
-    .subscribe((messages: Message[]) => {
-      this.messages = messages;
-      this.maxMessageId = this.getMaxId();
+  constructor(private http: HttpClient) { 
+    this.initMessages();
+  }
+
+  getMessages(): Message[] {
+    return this.messages.slice();
+  }
+
+  initMessages(): void {
+    this
+    .http
+    .get<{message: string, messages: Message[]}>('http://localhost:3000/messages')
+    .subscribe((response: any) => {
+      this.messages = response.messages;
+      this.maxMessageID = this.getMaxID();
       this.messages.sort(compareMessagesByID);
-      this.messagesChanged.next(this.messages.slice());
+      this.messagesChangedEvent.next(this.messages.slice());
     }, (err: any) => {
-      console.log(err);
+      console.error(err);
     });
   }
 
   getMessage(id: string): Message {
-    for (let i = 0; i < this.messages.length; i++){
-      if (this.messages[i].id ===id){
-        return this.messages[i];
-      } 
+    if (!this.messages) {
+      return null;
     }
+
+    for (let message of this.messages) {
+      if (message.id === id) {
+        return message;
+      }
+    }
+
     return null;
   }
 
-  storeMessages() {
-    let json = JSON.stringify(this.messages);
-    let header = new HttpHeaders();
-    header.set('Content-Type', 'application/json');
-    this.http
-    .put('https://princecms-4f1e5.firebaseio.com/messages.json', json, {
-      headers: header
-    }).subscribe(() => {
-          this.messagesChanged.next(this.messages.slice());
-        });
+  getMaxID(): number {
+    let maxID = 0;
+    for (let message of this.messages) {
+      let currentID = +message.id;
+      if (currentID > maxID) {
+        maxID = currentID;
+      }
+    }
+
+    return maxID;
   }
 
-  addMessage(newMessage: Message) {
-    if (newMessage === null) {
+  addMessage(message: Message): void {
+    if (!message) {
       return;
     }
 
-    this.maxMessageId++;
-    newMessage.id = String(this.maxMessageId);
-    this.messages.push(newMessage);
-    this.storeMessages();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    message.id = '';
+
+    this.http
+    .post<{message: string, newMessage: Message}>('http://localhost:3000/messages', message, {headers: headers})
+    .subscribe((response: any) => {
+      this.messages.push(response.newMessage);
+      this.messages.sort(compareMessagesByID);
+      this.messagesChangedEvent.next(this.messages.slice());
+    });
   }
 
-  getMaxId (): number {
-    var maxId = 0;
-    for (var i = 0; i < this.messages.length; i++) {
-      var currentId = Number(this.messages[i]['id']);
-      if (currentId > maxId) {
-        maxId = currentId;
-      }
-    }
-    return maxId;
+  storeMessages(): void {
+    let json = JSON.stringify(this.messages);
+    let header = new HttpHeaders();
+    header.set('Content-Type', 'application/json');
+    this
+    .http
+    .put<{message: string}>('http://localhost:3000/messages', json, {
+      headers: header
+    }).subscribe(() => {
+      this.messagesChangedEvent.next(this.messages.slice());
+    });
   }
-
 }
 
 function compareMessagesByID(lhs: Message, rhs: Message): number {

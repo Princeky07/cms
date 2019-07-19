@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Document } from '../documents.model';
+import { DocumentsService } from '../document.service';
 import { Router, ActivatedRoute, Params } from '@angular/router';
-
-import { Document } from '../documents.model'
-import { DocumentService } from '../document.service';
 import { WindRefService } from 'src/app/wind-ref.service';
-
 
 @Component({
   selector: 'cms-document-detail',
@@ -12,27 +10,21 @@ import { WindRefService } from 'src/app/wind-ref.service';
   styleUrls: ['./document-detail.component.css']
 })
 export class DocumentDetailComponent implements OnInit {
-  document: Document;
-  id: string;
   nativeWindow: any;
+  document: Document;
 
-  constructor(private documentService: DocumentService,
-              private windowRefService: WindRefService,
-              private router: Router,
-              private route: ActivatedRoute) { }
+  constructor(
+    private documentService: DocumentsService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private windRefService: WindRefService
+  ) { }
 
   ngOnInit() {
-    this.route.params
-      .subscribe(
-        (params: Params) => {
-          this.id = params['id'];
-          this.document = this.documentService.getDocument(this.id);
-        });
-    this.nativeWindow = this.windowRefService.getNativeWindow(); 
-  }
-
-  onEditDocument() {
-    this.router.navigate(['edit'], {relativeTo: this.route})
+    this.route.params.subscribe((params: Params) => {
+      this.document = this.documentService.getDocument(params['id']);
+    });
+    this.nativeWindow = this.windRefService.getNativeWindow();
   }
 
   onView() {
@@ -43,7 +35,6 @@ export class DocumentDetailComponent implements OnInit {
 
   onDelete() {
     this.documentService.deleteDocument(this.document);
-    this.router.navigate(['/documents'], {relativeTo: this.route});
+    this.router.navigate(['/documents']);
   }
-
 }
